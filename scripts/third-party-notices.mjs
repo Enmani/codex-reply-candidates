@@ -26,6 +26,9 @@ export async function writeThirdPartyNotices(inputs, output) {
     const [name, directory] = line.split('|');
     if (directory && !name.startsWith('github.com/Enmani/')) packages.set(name, directory);
   }
+  const goRoot = spawnSync('go', ['env', 'GOROOT'], { cwd: 'plugins/reply-candidates/server', encoding: 'utf8', windowsHide: true });
+  if (goRoot.status !== 0) throw Error(goRoot.stderr || 'Go runtime notice lookup failed');
+  packages.set('Go runtime', goRoot.stdout.trim());
   const notices = ['Third-party components used by Codex Reply Candidates.\n'];
   for (const [name, directory] of [...packages].sort()) {
     const files = (await readdir(directory)).filter(file => /^(licen[sc]e|copying|notice)(\..*)?$/i.test(file));
