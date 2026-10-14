@@ -1,0 +1,10 @@
+{
+  "name": "codex-multi-predictions",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "precheck": "node --test tests/*.test.mjs",
+    "build": "node scripts/build.mjs"
+  }
+}
