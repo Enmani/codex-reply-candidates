@@ -1,8 +1,19 @@
 import { join, normalize, resolve } from 'node:path';
 import { extractFile, listPackage } from '@electron/asar';
 import { runInNewContext } from 'node:vm';
+import { execFileSync } from 'node:child_process';
 
-export const defaultApp = 'C:/Program Files/WindowsApps/OpenAI.Codex_26.1007.2314.0_x64__2p2nqsd0c76g0/app';
+export function findInstalledApp() {
+  const result = execFileSync('powershell.exe', ['-NoLogo', '-NoProfile', '-Command',
+    "@(Get-AppxPackage -Name OpenAI.Codex | Select-Object -ExpandProperty InstallLocation) | ConvertTo-Json -Compress"],
+    { encoding: 'utf8', windowsHide: true }).trim();
+  const found = result ? JSON.parse(result) : [];
+  const locations = Array.isArray(found) ? found : [found];
+  if (locations.length !== 1) throw new Error(`Expected one installed Codex package, found ${locations.length}`);
+  return join(locations[0], 'app');
+}
+
+export const defaultApp = process.env.CODEX_CANDIDATES_SOURCE_APP || findInstalledApp();
 export const sourceApp = resolve(process.env.CODEX_CANDIDATES_SOURCE_APP || defaultApp);
 
 export function readBundledText(pattern, appDirectory = sourceApp) {

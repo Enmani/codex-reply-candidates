@@ -14,6 +14,7 @@ export function CodexMultiPredictionPanel(e) {
     submitText,
     onPrediction,
     requestPrediction,
+    candidateCount,
   } = e;
   const [localPrediction, setLocalPrediction] = RL.useState(null);
   const [isRefreshing, setIsRefreshing] = RL.useState(false);
@@ -31,13 +32,13 @@ export function CodexMultiPredictionPanel(e) {
     return () => {
       requestIdRef.current += 1;
     };
-  }, [prediction?.predictionThreadId, prediction?.sourceTurnId]);
+  }, [prediction?.predictionThreadId, prediction?.sourceTurnId, prediction?.generationId]);
 
   const currentPrediction = localPrediction ?? prediction;
   const suggestions = Array.isArray(currentPrediction?.suggestions)
     ? currentPrediction.suggestions
         .filter((value) => typeof value === "string" && value.trim() !== "")
-        .slice(0, 3)
+        .slice(0, Math.max(1, Math.min(3, Number(candidateCount) || 3)))
     : currentPrediction?.text?.trim()
       ? [currentPrediction.text.trim()]
       : [];

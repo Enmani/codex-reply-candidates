@@ -4,8 +4,13 @@ import { inspectTestRuntime } from './cdp-read.mjs';
 // Functional integration through the isolated copy's real services and composer
 // hooks. This does not click UI buttons or operate the user's existing threads.
 const { threadId } = JSON.parse(await readFile('work/seed-thread.json', 'utf8'));
-const expression = `(${async function integration(seedId, shouldSend) {
-  const services = (await import('./assets/app-shared-737655e1fb23.js')).fN;
+const manifest = JSON.parse(await readFile('dist/manifest.json', 'utf8'));
+const expression = `(${async function integration(seedId, shouldSend, serviceModule, serviceExport) {
+  const serviceBindings = await import('./assets/'+serviceModule.replace(/^\.\//, ''));
+  const serviceDeadline = Date.now() + 30000;
+  while (!serviceBindings[serviceExport] && Date.now() < serviceDeadline) await new Promise(resolve => setTimeout(resolve, 100));
+  const services = serviceBindings[serviceExport];
+  if (!services?.windowNavigation) throw new Error('Desktop services did not initialize');
   await services.windowNavigation.navigateInOwnerWindow({ path: '/local/' + seedId });
   function panel() {
     let found;
@@ -20,11 +25,16 @@ const expression = `(${async function integration(seedId, shouldSend) {
     return found.memoizedProps;
   }
   const deadline = Date.now() + 15000;
-  while (!panel() && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 100));
+  while (!panel()?.enabled && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 100));
   const props = panel();
   if (!props) throw new Error('Isolated seed panel did not mount');
   if (props.controller.getText().trim()) throw new Error('Test composer already has a draft');
-  const first = await props.requestPrediction();
+  const autoDeadline=Date.now()+60000;
+  while(!panel()?.prediction?.suggestions?.length&&Date.now()<autoDeadline){
+    if(panel()?.error)throw new Error('Automatic candidate generation failed');
+    await new Promise(resolve=>setTimeout(resolve,100));
+  }
+  const first = panel()?.prediction;
   if (first?.suggestions?.length !== 3) throw new Error('Panel request did not return three candidates: ' + JSON.stringify(first));
   props.onPrediction(first);
   await new Promise(resolve => setTimeout(resolve, 250));
@@ -51,10 +61,11 @@ const expression = `(${async function integration(seedId, shouldSend) {
     refreshedFork: refreshed.predictionThreadId,
     candidates: refreshed.suggestions,
     actualPanelRendered: true,
+    automaticCandidatesGenerated:true,
     actualComposerDraftAccepted: true,
     submitted,
   };
-}.toString()})(${JSON.stringify(threadId)},${process.argv.includes('--send')})`;
+}.toString()})(${JSON.stringify(threadId)},${process.argv.includes('--send')},${JSON.stringify(manifest.servicesModule)},${JSON.stringify(manifest.servicesExport)})`;
 
 const result = await inspectTestRuntime(expression, undefined, 120000);
 await writeFile('work/runtime-integration.json', JSON.stringify(result, null, 2));

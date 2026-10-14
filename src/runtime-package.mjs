@@ -7,7 +7,7 @@ import { writeAsarOverlay } from './asar-overlay.mjs';
 export async function packageRuntime({ sourceApp, archive, destination, profileName, debugPort }) {
   const runtime = resolve(destination);
   await mkdir(runtime, { recursive: true });
-  await cp(sourceApp, runtime, { recursive: true, force: false });
+  await cp(sourceApp, runtime, { recursive: true, force: true });
   const ini = join(runtime, 'resources', 'owl-app.ini');
   const originalIni = await readFile(ini, 'utf8');
   if (originalIni.match(/^UserDataDirectoryName=.*$/gm)?.length !== 1) throw new Error('Unsupported Owl profile configuration');

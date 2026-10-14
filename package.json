@@ -1,14 +1,17 @@
 {
   "name": "codex-multi-predictions",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "precheck": "node --test tests/*.test.mjs",
-    "build": "node scripts/build.mjs",
-    "package": "node scripts/stage-release.mjs"
+    "precheck": "node scripts/precheck.mjs",
+    "build": "node scripts/build-plugin.mjs",
+    "build:client": "node scripts/build.mjs",
+    "package:client": "node scripts/stage-release.mjs"
   },
   "dependencies": {
-    "@electron/asar": "4.3.1"
+    "@electron/asar": "4.3.1",
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "esbuild": "0.28.2"
   }
 }

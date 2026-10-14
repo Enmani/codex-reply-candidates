@@ -11,6 +11,22 @@ test("patches the identified renderer once and keeps the original prediction pat
   assert.notEqual(patched, fixture);
   assert.match(patched, /function CodexMultiPredictionPanel\(e\)/);
   assert.match(patched, /suggestions/);
+  assert.match(patched, /let\{data:p\}=Sm\(f,s\.queryClient\)/);
+  assert.match(patched, /replyCandidateSettings/);
+  assert.match(patched, /l\.getReplyCandidatesSettings\(\{hostId:c\?\.hostId\?\?i\}\)/);
+  assert.doesNotMatch(patched, /replyCandidateReader\.call\(l/);
+  assert.doesNotMatch(patched, /readReplyCandidatesSettings|requestReplyCandidatesSettings/);
+  assert.match(patched, /replyCandidateDisable\(replyCandidateError\)/);
+  assert.match(patched, /settings read failed/);
+  assert.match(patched, /void replyCandidateRead\(\);\s*let replyCandidateTimer/);
+  assert.match(patched, /setInterval\(replyCandidatePoll,1000\)/);
+  assert.match(patched, /visibilityState===\"visible\"/);
+  assert.match(patched, /replyCandidates:!0/);
+  assert.match(patched, /\[`reply-candidates`,c,replyCandidateSettings\.count\]/);
+  assert.match(patched, /setQueryData\(replyCandidateQueryKey,t\)/);
+  assert.doesNotMatch(patched, /setQueryData\(\[`cumberbatch`,c\],t\)/);
+  assert.match(patched, /coe\(\{scope:s,target:n,prediction:e\}\)/);
+  assert.match(patched, /requestUserMessagePrediction\(n,r\)/);
   assert.match(patched, /forceRefresh:!0/);
   assert.match(patched, /generationTrigger:`catch_up`/);
   assert.match(patched, /Woe\(l\.requestUserMessagePrediction\(e,new lr\(t=>\{Vi\(\{scope:s,target:e,ineligibility:t\}\)\}\)\)\)/);
@@ -21,7 +37,9 @@ test("patches the identified renderer once and keeps the original prediction pat
   assert.match(patched, /intl:Ln/);
   assert.match(patched, /intl:predictionIntl/);
   assert.match(patched, /key:c==null\?null:\[c\.hostId,c\.threadId,c\.latestTurnId\]\.join/);
-  assert.match(patched, /setQueryData\(\[`cumberbatch`,c\],t\)/);
+  assert.match(patched, /enabled:replyCandidateEnabled/);
+  assert.match(patched, /prediction:replyCandidatePrediction/);
+  assert.match(patched, /candidateCount:replyCandidateSettings\?\.count\?\?3/);
   assert.match(patched, /Ck as kt/);
   assert.match(patched, /children: copy\.fill/);
   assert.match(patched, /children: copy\.send/);
@@ -37,6 +55,24 @@ test("patches the identified renderer once and keeps the original prediction pat
 test("fails closed when the renderer shape is not the inspected client", () => {
   assert.throws(() => transformRenderer("function ZXe(e){}"), /unsupported Codex renderer/);
   assert.throws(() => transformRenderer(fixture.replace("function QXe(e)", "function QXeChanged(e)")), /unsupported Codex renderer/);
+});
+
+test("settings RPC is called directly with the active host context", async () => {
+  const calls = [];
+  const service = new Proxy({
+    getReplyCandidatesSettings(args) {
+      calls.push(args);
+      return Promise.resolve({ values: { enabled: true, count: 2 } });
+    },
+  }, {
+    get(target, property, receiver) {
+      if (property === "call") throw new Error("remote RPC proxies do not support Function.call");
+      return Reflect.get(target, property, receiver);
+    },
+  });
+  const settings = await service.getReplyCandidatesSettings({ hostId: "local" });
+  assert.deepEqual(settings.values, { enabled: true, count: 2 });
+  assert.deepEqual(calls, [{ hostId: "local" }]);
 });
 
 test("does not use DOM text matching for sending", () => {
@@ -248,5 +284,26 @@ test("empty state keeps only the header refresh action", () => {
   });
   const refreshButtons = harness.buttons(tree).filter((button) => button.props.children === "Refresh");
   assert.equal(refreshButtons.length, 1);
+});
+
+test("component limits candidates to the live setting and disappears when disabled", () => {
+  const patched = transformRenderer(fixture);
+  const harness = makePanelHarness(patched);
+  const controller = { getText: () => "", setText: () => {}, focus: () => {}, view: { isDestroyed: false } };
+  const props = {
+    controller,
+    enabled: true,
+    candidateCount: 1,
+    intl: { locale: "en-US" },
+    prediction: { suggestions: ["first", "second", "third"] },
+    loading: false,
+    error: false,
+    submitText: async () => true,
+  };
+  const tree = harness.render(props);
+  const rendered = harness.text(tree).join(" ");
+  assert.match(rendered, /first/);
+  assert.doesNotMatch(rendered, /second|third/);
+  assert.equal(harness.render({ ...props, enabled: false }), null);
 });
 

@@ -1,0 +1,13 @@
+{
+  "name": "reply-candidates",
+  "version": "0.2.0",
+  "description": "生成 1–3 条下一步回复建议，可填入、发送或换一批。",
+  "mcpServers": "./mcp.json",
+  "interface": {
+    "displayName": "回复建议",
+    "shortDescription": "任选一条回复，或换一批",
+    "developerName": "Enmani",
+    "category": "Productivity",
+    "defaultPrompt": ["根据刚才的对话生成回复建议。"]
+  }
+}

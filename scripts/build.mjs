@@ -5,8 +5,8 @@ import { extractFile, listPackage } from '@electron/asar';
 import { transformBackend } from '../src/backend-patch.mjs';
 import { transformRenderer } from '../src/renderer-patch.mjs';
 import { writeAsarOverlay } from '../src/asar-overlay.mjs';
+import { defaultApp } from '../src/client-package.mjs';
 
-const defaultApp = 'C:/Program Files/WindowsApps/OpenAI.Codex_26.1007.2314.0_x64__2p2nqsd0c76g0/app';
 const sourceIndex = process.argv.indexOf('--source');
 const sourceApp = resolve(sourceIndex < 0 ? defaultApp : process.argv[sourceIndex + 1]);
 const archivePath = join(sourceApp, 'resources', 'app.asar');
@@ -20,6 +20,8 @@ const backendPath = uniqueMember(/^\.vite\/build\/main-[\w-]+\.js$/);
 const rendererPath = uniqueMember(/^webview\/assets\/app-primary-[\w-]+\.js$/);
 const backend = transformBackend(extractFile(archivePath, normalize(backendPath)).toString('utf8'));
 const renderer = transformRenderer(extractFile(archivePath, normalize(rendererPath)).toString('utf8'));
+const serviceImports = [...renderer.matchAll(/import\{[^}]*\b(\w+) as op\b[^}]*\}from"([^"]+)";/g)];
+if (serviceImports.length !== 1) throw new Error('Expected one renderer service import');
 const outputDirectory = resolve('dist');
 await mkdir(outputDirectory, { recursive: true });
 for (const [name, source] of [['backend.cjs', backend], ['renderer.mjs', renderer]]) {
@@ -35,6 +37,8 @@ const manifest = {
   sourceVersion: JSON.parse(extractFile(archivePath, 'package.json')).version,
   builtAt: new Date().toISOString(),
   candidateCount: 3,
+  servicesModule: serviceImports[0][2],
+  servicesExport: serviceImports[0][1],
   modifiedMembers: [backendPath, rendererPath],
   archiveStats: stats,
 };

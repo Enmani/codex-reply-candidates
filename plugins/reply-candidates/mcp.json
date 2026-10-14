@@ -1,0 +1,10 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "reply_candidates": {
+      "type": "stdio",
+      "command": "./bin/reply-candidates.exe",
+      "args": ["--mcp"]
+    }
+  }
+}

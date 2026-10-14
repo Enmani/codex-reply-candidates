@@ -4,7 +4,7 @@ import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 
 const staging = JSON.parse(await readFile('work/staging.json', 'utf8'));
-const cli = 'C:/Users/di/AppData/Local/OpenAI/Codex/bin/2e5e00daee91c61d/codex.exe';
+const cli = join(staging.runtime, 'resources', 'codex.exe');
 await cp(join(homedir(), '.codex', 'auth.json'), join(staging.codexHome, 'auth.json'));
 const preferencesPath = join(staging.codexHome, '.codex-global-state.json');
 const originalPreferences = JSON.parse(await readFile(join(homedir(), '.codex', '.codex-global-state.json'), 'utf8'));

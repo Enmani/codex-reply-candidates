@@ -1,17 +1,25 @@
-# Codex 回复候选
+# Codex 回复建议
 
-在 Codex 输入框附近显示多条预测回复，支持换一批、填入草稿和选择发送。
+在 Codex 输入框上方显示 1–3 条预测回复。可以填入后修改、选择发送，也可以刷新换一批。
 
-默认生成 3 条候选。每条可“填入”后修改，也可直接“发送”；“换一批”重新生成。已有草稿时禁用候选操作，防止覆盖输入。
+![输入框上方的候选列表](docs/images/client-candidates-three.png)
 
-等当前任务结束并完全退出原版 Codex，双击 `dist/启动候选版.cmd`。候选版是添加了内嵌面板的 Codex 本地副本，使用原有账号、对话和设置。原安装包保留，可退出候选版后从原来的入口恢复。
+安装 Codex 后，从 [Releases](https://github.com/Enmani/codex-reply-candidates/releases/latest) 下载并双击 `CodexReplyCandidates-Setup.exe`。安装完成后，退出当前 Codex，再打开桌面的「Codex 回复建议」。不需要运行 BAT，也不需要安装 Node.js 或 Python。
 
-当前支持 Windows 包 `26.1007.2314.0`，客户端版本 `26.1007.21434`。更新后需要重新适配。候选生成沿用账号和模型的可用范围。
+在 Codex「设置 → 插件 → 回复建议」中，可以关闭候选、设置建议条数为 1–3。关闭候选后，原生灰色自动填充继续工作。已有草稿时隐藏候选列表。
 
-隔离对话已验证真实生成、重新生成、列表显示、填入草稿和发送后的模型回复。14 项检查通过。正式会话没有切换到候选版。
+这是非官方扩展，由设置插件和客户端接入组件组成。安装器在本机复制已安装的 Codex 并添加候选功能，保留原安装。安装包不包含 OpenAI 客户端文件。当前适配 Windows 客户端 `26.1007.71326`；客户端更新后可能需要新的适配版本。
 
-机制与证据见 [预测回复调查](docs/预测回复调查.md)。
+开发需要 Node.js 22 或更新版本、Go，以及本机已安装的 Windows Codex：
 
-开发需要 Node.js、Python、`pefile` 和 `npm ci` 安装的依赖。检查入口：`npm run precheck`。构建：`npm run build`。打包副本与启动器：`npm run package`。不需要管理员权限。
+```sh
+npm ci
+npm run precheck
+npm run build
+```
 
-隔离联调入口依次为 `node scripts/stage-test.mjs`、`node scripts/seed-test.mjs`、`node scripts/launch-test.mjs`、`node scripts/runtime-integration.mjs --send`。它会调用真实模型，只向自己的测试对话发送。临时数据位于 `work/`，测试浏览器配置位于 `%APPDATA%/Codex/web/CodexCandidatesTest`。
+安装器输出到 `dist/plugin/CodexReplyCandidates-Setup.exe`。`plugins/reply-candidates/server` 提供设置和 Windows 安装器，`src` 提供客户端接入逻辑。无法唯一识别对应代码时停止构建。
+
+机制见 [预测回复调查](docs/预测回复调查.md)，实际验证见 [验证记录](docs/验证记录.md)。
+
+项目采用 MIT 许可证。Codex 名称及客户端属于 OpenAI。

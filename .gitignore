@@ -2,3 +2,5 @@ work/
 dist/
 node_modules/
 *.log
+plugins/reply-candidates/server/cmd/reply-candidates/assets/
+plugins/reply-candidates/bin/
