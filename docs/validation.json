@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-14",
+  "sourceVersion": "26.1007.21434",
+  "sourceWindowsPackage": "26.1007.2314.0",
+  "checksPassed": 14,
+  "model": "gpt-6.1-sol",
+  "predictionReasoningEffort": "high",
+  "promptVersion": "5",
+  "firstDurationMs": 7078,
+  "cachedForkReused": true,
+  "refreshCreatedNewFork": true,
+  "actualPanelRendered": true,
+  "actualComposerDraftAccepted": true,
+  "actualMessageSubmitted": true,
+  "actualAssistantResponseCompleted": true,
+  "submissionObservedAt": "2026-10-14T09:56:44.242Z",
+  "responseCompletedAt": "2026-10-14T09:56:50.912Z",
+  "runtimeVerification": "Isolated installed-app copy; real services and composer methods; no desktop UI clicks",
+  "formalUserSessionEnabled": false
+}

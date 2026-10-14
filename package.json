@@ -5,6 +5,10 @@
   "type": "module",
   "scripts": {
     "precheck": "node --test tests/*.test.mjs",
-    "build": "node scripts/build.mjs"
+    "build": "node scripts/build.mjs",
+    "package": "node scripts/stage-release.mjs"
+  },
+  "dependencies": {
+    "@electron/asar": "4.3.1"
   }
 }
